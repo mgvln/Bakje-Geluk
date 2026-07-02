@@ -1,3 +1,5 @@
+import { SUPABASE_URL } from "./supabase/config";
+
 export type Decision = "build_now" | "build_future" | "rejected";
 
 // Mirrors the public.stories table (subset used by the UI + labeling columns).
@@ -30,8 +32,7 @@ export function storyImage(s: {
   source_image_url: string | null;
 }): string | null {
   if (s.media_storage_path) {
-    const base = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    return `${base}/storage/v1/object/public/${s.media_storage_path}`;
+    return `${SUPABASE_URL}/storage/v1/object/public/${s.media_storage_path}`;
   }
   return s.source_image_url ?? null;
 }
