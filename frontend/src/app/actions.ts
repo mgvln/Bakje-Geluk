@@ -3,25 +3,26 @@
 import { revalidatePath } from "next/cache";
 import { Client as Notion } from "@notionhq/client";
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
 import { storyImage, type Decision } from "@/lib/types";
 
+// Returns the logged-in user's Supabase client (RLS applies as `authenticated`).
+// Writes rely on the "authenticated can modify stories" policy — no service-role key,
+// which avoids depending on a secret env var that can corrupt on paste.
 async function requireUser() {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
-  return user;
+  return supabase;
 }
 
 export async function labelStory(
   storyId: string,
   fields: { decision?: Decision | null; product?: string | null },
 ) {
-  await requireUser();
-  const admin = createAdminClient();
-  const { error } = await admin
+  const supabase = await requireUser();
+  const { error } = await supabase
     .from("stories")
     .update(fields)
     .eq("story_id", storyId);
@@ -31,9 +32,8 @@ export async function labelStory(
 }
 
 export async function setAdBuilt(storyId: string, adBuilt: boolean) {
-  await requireUser();
-  const admin = createAdminClient();
-  const { error } = await admin
+  const supabase = await requireUser();
+  const { error } = await supabase
     .from("stories")
     .update({ ad_built: adBuilt })
     .eq("story_id", storyId);
@@ -43,13 +43,12 @@ export async function setAdBuilt(storyId: string, adBuilt: boolean) {
 
 // Phase 1: insert selected stories into Notion (product + promo type + image + Supabase link).
 export async function exportToNotion(storyIds: string[], promoType: string) {
-  await requireUser();
+  const supabase = await requireUser();
   const dataSourceId = process.env.NOTION_DATA_SOURCE_ID;
   if (!process.env.NOTION_TOKEN || !dataSourceId) {
     throw new Error("Notion is not configured yet (missing token/data source id).");
   }
-  const admin = createAdminClient();
-  const { data: stories, error } = await admin
+  const { data: stories, error } = await supabase
     .from("stories")
     .select("story_id, product, username, media_storage_path, source_image_url")
     .in("story_id", storyIds);
@@ -96,7 +95,7 @@ export async function exportToNotion(storyIds: string[], promoType: string) {
       children: children as never,
     } as never);
 
-    await admin
+    await supabase
       .from("stories")
       .update({ exported_to_notion: new Date().toISOString(), ad_built: true })
       .eq("story_id", s.story_id);

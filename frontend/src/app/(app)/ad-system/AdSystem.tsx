@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { exportToNotion } from "@/app/actions";
-import { PROMO_TYPES, storyImage, type Story } from "@/lib/types";
+import { PROMO_TYPES, storyMedia, type Story } from "@/lib/types";
 
 export default function AdSystem({ stories }: { stories: Story[] }) {
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -61,7 +61,7 @@ export default function AdSystem({ stories }: { stories: Story[] }) {
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
           {stories.map((s) => {
             const isSel = selected.has(s.story_id);
-            const image = storyImage(s);
+            const { url, isVideo } = storyMedia(s);
             return (
               <button
                 key={s.story_id}
@@ -71,11 +71,17 @@ export default function AdSystem({ stories }: { stories: Story[] }) {
                 }`}
               >
                 <div className="relative aspect-[9/16] bg-gray-100">
-                  {image ? (
+                  {url && isVideo ? (
+                    // no controls so the click still selects the card; shows first frame
+                    <video src={url} className="h-full w-full object-cover" muted playsInline preload="metadata" />
+                  ) : url ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={image} alt="" className="h-full w-full object-cover" />
+                    <img src={url} alt="" className="h-full w-full object-cover" />
                   ) : (
-                    <div className="flex h-full items-center justify-center text-xs text-gray-400">no image</div>
+                    <div className="flex h-full items-center justify-center text-xs text-gray-400">no media</div>
+                  )}
+                  {isVideo && (
+                    <span className="absolute left-2 top-2 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-medium text-white">▶ video</span>
                   )}
                   {isSel && (
                     <span className="absolute right-2 top-2 rounded-full bg-gray-900 px-2 py-0.5 text-xs font-medium text-white">

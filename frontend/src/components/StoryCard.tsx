@@ -1,4 +1,4 @@
-import { storyImage, type Story } from "@/lib/types";
+import { storyMedia, type Story } from "@/lib/types";
 
 function Badge({ children, tone = "gray" }: { children: React.ReactNode; tone?: "gray" | "green" | "blue" | "amber" }) {
   const tones = {
@@ -21,16 +21,25 @@ export default function StoryCard({
   story: Story;
   children?: React.ReactNode;
 }) {
-  const image = storyImage(story);
+  const { url, isVideo } = storyMedia(story);
   return (
     <div className="flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white">
       <div className="relative aspect-[9/16] bg-gray-100">
-        {image ? (
+        {url && isVideo ? (
+          <video
+            src={url}
+            className="h-full w-full object-cover"
+            muted
+            playsInline
+            preload="metadata"
+            controls
+          />
+        ) : url ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={image} alt="" className="h-full w-full object-cover" />
+          <img src={url} alt="" className="h-full w-full object-cover" />
         ) : (
           <div className="flex h-full items-center justify-center text-xs text-gray-400">
-            {story.media_type === "video" ? "video" : "no image"}
+            no media
           </div>
         )}
       </div>

@@ -37,6 +37,19 @@ export function storyImage(s: {
   return s.source_image_url ?? null;
 }
 
+// Returns the media URL plus whether it's a video, so the UI renders <video> for
+// .mp4 stories instead of a broken <img>.
+export function storyMedia(s: {
+  media_type: string | null;
+  media_storage_path: string | null;
+  source_image_url: string | null;
+}): { url: string | null; isVideo: boolean } {
+  const url = storyImage(s);
+  const isVideo =
+    s.media_type === "video" || (s.media_storage_path?.endsWith(".mp4") ?? false);
+  return { url, isVideo };
+}
+
 export const DECISION_LABELS: Record<Decision, string> = {
   build_now: "Build now",
   build_future: "Build later",
