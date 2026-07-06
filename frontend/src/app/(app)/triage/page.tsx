@@ -1,7 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import type { Story } from "@/lib/types";
-import TriageControls from "./TriageControls";
-import StoryCard from "@/components/StoryCard";
+import TriageBoard from "./TriageBoard";
 
 export const dynamic = "force-dynamic";
 
@@ -13,7 +12,7 @@ export default async function TriagePage() {
     .select("*")
     .is("decision", null)
     .order("posted_at", { ascending: false })
-    .limit(60);
+    .limit(120);
 
   const stories = (data ?? []) as Story[];
 
@@ -29,13 +28,7 @@ export default async function TriagePage() {
       {stories.length === 0 ? (
         <p className="text-sm text-gray-500">Nothing to triage. 🎉</p>
       ) : (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-          {stories.map((s) => (
-            <StoryCard key={s.story_id} story={s}>
-              <TriageControls story={s} />
-            </StoryCard>
-          ))}
-        </div>
+        <TriageBoard stories={stories} />
       )}
     </div>
   );

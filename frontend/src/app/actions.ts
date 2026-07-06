@@ -31,6 +31,22 @@ export async function labelStory(
   revalidatePath("/library");
 }
 
+// Bulk version of labelStory — assign decision and/or product to many stories at once.
+export async function labelStories(
+  storyIds: string[],
+  fields: { decision?: Decision | null; product?: string | null },
+) {
+  const supabase = await requireUser();
+  if (storyIds.length === 0) return;
+  const { error } = await supabase
+    .from("stories")
+    .update(fields)
+    .in("story_id", storyIds);
+  if (error) throw new Error(error.message);
+  revalidatePath("/triage");
+  revalidatePath("/library");
+}
+
 export async function setAdBuilt(storyId: string, adBuilt: boolean) {
   const supabase = await requireUser();
   const { error } = await supabase

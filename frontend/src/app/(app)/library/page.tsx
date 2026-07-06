@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import type { Story } from "@/lib/types";
 import StoryCard from "@/components/StoryCard";
 import LibraryFilters from "./LibraryFilters";
+import DecisionSelect from "./DecisionSelect";
 
 export const dynamic = "force-dynamic";
 
@@ -37,7 +38,9 @@ export default async function LibraryPage({
 
       <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
         {stories.map((s) => (
-          <StoryCard key={s.story_id} story={s} />
+          <StoryCard key={s.story_id} story={s}>
+            <DecisionSelect story={s} />
+          </StoryCard>
         ))}
       </div>
       {stories.length === 0 && !error && (
