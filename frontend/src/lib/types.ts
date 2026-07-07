@@ -8,6 +8,7 @@ export type Story = {
   username: string | null;
   user_full_name: string | null;
   media_type: string | null;
+  content_type: string | null; // 'story' | 'post'
   source_image_url: string | null;
   source_video_url: string | null;
   media_storage_path: string | null;

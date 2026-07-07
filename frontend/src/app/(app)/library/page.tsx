@@ -20,6 +20,8 @@ export default async function LibraryPage({
 
   if (sp.view === "raw") q = q.is("decision", null);
   if (sp.view === "filtered") q = q.not("decision", "is", null);
+  if (sp.content === "story") q = q.or("content_type.eq.story,content_type.is.null");
+  if (sp.content === "post") q = q.eq("content_type", "post");
   if (sp.decision) q = q.eq("decision", sp.decision);
   if (sp.product) q = q.eq("product", sp.product);
   if (sp.category) q = q.eq("category", sp.category);

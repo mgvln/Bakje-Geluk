@@ -26,6 +26,12 @@ export default function LibraryFilters() {
         <option value="filtered">Filtered</option>
       </select>
 
+      <select value={sp.get("content") ?? ""} onChange={(e) => set("content", e.target.value)} className={selectCls}>
+        <option value="">Stories &amp; posts</option>
+        <option value="story">Stories</option>
+        <option value="post">Posts</option>
+      </select>
+
       <select value={sp.get("decision") ?? ""} onChange={(e) => set("decision", e.target.value)} className={selectCls}>
         <option value="">Any decision</option>
         {Object.entries(DECISION_LABELS).map(([k, v]) => (

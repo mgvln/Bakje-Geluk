@@ -54,6 +54,7 @@ export default function StoryCard({
         </div>
 
         <div className="flex flex-wrap gap-1">
+          {story.content_type === "post" && <Badge tone="blue">post</Badge>}
           {story.category && <Badge>{story.category}</Badge>}
           {story.product && <Badge tone="blue">{story.product}</Badge>}
           {story.ad_built && <Badge tone="amber">ad built</Badge>}
