@@ -61,8 +61,14 @@ export default function StoryCard({
           {story.exported_to_notion && <Badge tone="green">in Notion</Badge>}
         </div>
 
-        {story.overlay_text && (
-          <p className="line-clamp-3 text-xs text-gray-600">{story.overlay_text}</p>
+        {(story.overlay_text || story.caption) && (
+          // stories: OCR overlay text; posts: the Instagram caption (full text on hover)
+          <p
+            className="line-clamp-3 text-xs text-gray-600"
+            title={story.overlay_text ?? story.caption ?? undefined}
+          >
+            {story.overlay_text ?? story.caption}
+          </p>
         )}
 
         {children}

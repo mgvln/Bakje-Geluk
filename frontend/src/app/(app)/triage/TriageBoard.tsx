@@ -111,7 +111,11 @@ export default function TriageBoard({ stories }: { stories: Story[] }) {
                     {s.posted_at ? new Date(s.posted_at).toLocaleDateString() : ""}
                   </span>
                 </div>
-                {s.overlay_text && <p className="line-clamp-2 text-xs text-gray-600">{s.overlay_text}</p>}
+                {(s.overlay_text || s.caption) && (
+                  <p className="line-clamp-2 text-xs text-gray-600" title={s.overlay_text ?? s.caption ?? undefined}>
+                    {s.overlay_text ?? s.caption}
+                  </p>
+                )}
                 <TriageControls story={s} />
               </div>
             </div>

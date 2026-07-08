@@ -66,7 +66,7 @@ export async function exportToNotion(storyIds: string[], promoType: string) {
   }
   const { data: stories, error } = await supabase
     .from("stories")
-    .select("story_id, product, username, media_storage_path, source_image_url")
+    .select("story_id, product, username, media_storage_path, source_image_url, caption, overlay_text")
     .in("story_id", storyIds);
   if (error) throw new Error(error.message);
 
@@ -95,6 +95,19 @@ export async function exportToNotion(storyIds: string[], promoType: string) {
               text: { content: "Supabase download", link: { url: image } },
             },
           ],
+        },
+      });
+    }
+
+    // Original Instagram copy (post caption or story OCR text), truncated to
+    // Notion's 2000-char rich_text limit.
+    const copy = s.caption ?? s.overlay_text;
+    if (copy) {
+      children.push({
+        object: "block",
+        type: "paragraph",
+        paragraph: {
+          rich_text: [{ type: "text", text: { content: copy.slice(0, 2000) } }],
         },
       });
     }
