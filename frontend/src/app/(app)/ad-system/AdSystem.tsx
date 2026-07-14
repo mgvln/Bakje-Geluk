@@ -3,10 +3,14 @@
 import { useState, useTransition } from "react";
 import { exportToNotion } from "@/app/actions";
 import { PROMO_TYPES, storyMedia, type Story } from "@/lib/types";
+import { AWARENESS_LEVELS, type AwarenessLevel } from "@/lib/generation/config";
+import GeneratePanel from "./GeneratePanel";
 
 export default function AdSystem({ stories }: { stories: Story[] }) {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [promoType, setPromoType] = useState("");
+  const [awareness, setAwareness] = useState<AwarenessLevel>("Solution Aware");
+  const [generating, setGenerating] = useState<Story | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -45,6 +49,16 @@ export default function AdSystem({ stories }: { stories: Story[] }) {
             <option key={p} value={p}>{p}</option>
           ))}
         </select>
+        <select
+          value={awareness}
+          onChange={(e) => setAwareness(e.target.value as AwarenessLevel)}
+          className="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-900"
+          title="Awareness level — stuurt hook-formules, copy-variant en button"
+        >
+          {AWARENESS_LEVELS.map((l) => (
+            <option key={l} value={l}>{l}</option>
+          ))}
+        </select>
         <button
           onClick={exportSelected}
           disabled={pending || selected.size === 0 || !promoType}
@@ -55,6 +69,15 @@ export default function AdSystem({ stories }: { stories: Story[] }) {
         {msg && <span className="text-sm text-gray-600">{msg}</span>}
       </div>
 
+      {generating && (
+        <GeneratePanel
+          story={generating}
+          promoType={promoType || "STATIC-ADS"}
+          awarenessLevel={awareness}
+          onClose={() => setGenerating(null)}
+        />
+      )}
+
       {stories.length === 0 ? (
         <p className="text-sm text-gray-500">No stories marked “Build now” are waiting.</p>
       ) : (
@@ -63,10 +86,13 @@ export default function AdSystem({ stories }: { stories: Story[] }) {
             const isSel = selected.has(s.story_id);
             const { url, isVideo } = storyMedia(s);
             return (
-              <button
+              <div
                 key={s.story_id}
+                role="button"
+                tabIndex={0}
                 onClick={() => toggle(s.story_id)}
-                className={`overflow-hidden rounded-xl border-2 text-left ${
+                onKeyDown={(e) => e.key === "Enter" && toggle(s.story_id)}
+                className={`cursor-pointer overflow-hidden rounded-xl border-2 text-left ${
                   isSel ? "border-gray-900 ring-2 ring-gray-900" : "border-gray-200"
                 }`}
               >
@@ -89,11 +115,23 @@ export default function AdSystem({ stories }: { stories: Story[] }) {
                     </span>
                   )}
                 </div>
-                <div className="p-2">
-                  <p className="truncate text-sm font-medium text-gray-900">@{s.username ?? "unknown"}</p>
-                  {s.product && <p className="text-xs text-blue-700">{s.product}</p>}
+                <div className="flex items-start justify-between gap-1 p-2">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium text-gray-900">@{s.username ?? "unknown"}</p>
+                    {s.product && <p className="text-xs text-blue-700">{s.product}</p>}
+                  </div>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setGenerating(s);
+                    }}
+                    title="Genereer hooks + copy voor deze story"
+                    className="shrink-0 rounded-lg border border-gray-300 px-2 py-0.5 text-sm hover:border-gray-900"
+                  >
+                    ✨
+                  </button>
                 </div>
-              </button>
+              </div>
             );
           })}
         </div>
