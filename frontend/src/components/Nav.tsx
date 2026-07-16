@@ -8,6 +8,7 @@ const TABS = [
   { href: "/triage", label: "Triage" },
   { href: "/library", label: "Library" },
   { href: "/ad-system", label: "Ad system" },
+  { href: "/inspiratie", label: "Inspiratie" },
 ];
 
 export default function Nav() {
