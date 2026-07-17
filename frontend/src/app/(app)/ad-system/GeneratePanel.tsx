@@ -9,19 +9,25 @@ import {
   type GeneratedCopy,
 } from "@/app/generate";
 import type { AwarenessLevel } from "@/lib/generation/config";
-import type { Story } from "@/lib/types";
+import type { SourceRef } from "@/app/generate";
 
 // Phase 2 generation flow for one story:
 // 1. Generate 3 hooks → team picks one (or regenerates)
 // 2. Generate 2 copy variants for the chosen hook → editable
 // 3. Save to generated_hooks (Notion write path comes later)
 export default function GeneratePanel({
-  story,
+  source,
+  title,
+  sourceText,
+  product,
   promoType,
   awarenessLevel,
   onClose,
 }: {
-  story: Story;
+  source: SourceRef;
+  title: string;
+  sourceText: string | null;
+  product: string;
   promoType: string;
   awarenessLevel: AwarenessLevel;
   onClose: () => void;
@@ -34,12 +40,7 @@ export default function GeneratePanel({
   const [msg, setMsg] = useState<string | null>(null);
   const [pending, start] = useTransition();
 
-  const base = {
-    storyId: story.story_id,
-    product: story.product ?? "ALLES",
-    promoType,
-    awarenessLevel,
-  };
+  const base = { source, product, promoType, awarenessLevel };
 
   function runHooks() {
     setMsg(null);
@@ -79,7 +80,7 @@ export default function GeneratePanel({
           ...(copies?.flatMap((c) => c.flags) ?? []),
         ];
         await saveGeneration({
-          storyId: story.story_id,
+          source,
           hook: chosen.hook,
           formule: chosen.formule,
           adCopy1: copy1,
@@ -96,17 +97,15 @@ export default function GeneratePanel({
     });
   }
 
-  const sourceText = story.caption ?? story.overlay_text;
-
   return (
     <div className="mb-4 rounded-xl border border-gray-300 bg-white p-4">
       <div className="mb-3 flex items-center justify-between">
         <div>
           <h3 className="text-sm font-semibold text-gray-900">
-            ✨ Genereer ad — @{story.username ?? "unknown"}
+            ✨ Genereer ad — {title}
           </h3>
           <p className="text-xs text-gray-500">
-            {base.product} · {promoType} · {awarenessLevel} · button: {chosen?.button ?? "—"}
+            {product} · {promoType} · {awarenessLevel} · button: {chosen?.button ?? "—"}
           </p>
         </div>
         <button onClick={onClose} className="text-sm text-gray-500 hover:text-gray-900">✕ sluiten</button>
@@ -115,7 +114,7 @@ export default function GeneratePanel({
       {sourceText ? (
         <p className="mb-3 line-clamp-2 text-xs italic text-gray-500">Bron: {sourceText}</p>
       ) : (
-        <p className="mb-3 text-xs text-red-600">Deze story heeft geen tekst — genereren werkt hier niet goed.</p>
+        <p className="mb-3 text-xs text-red-600">Deze bron heeft geen tekst — genereren werkt hier niet goed.</p>
       )}
 
       {!hooks && (

@@ -71,7 +71,10 @@ export default function AdSystem({ stories }: { stories: Story[] }) {
 
       {generating && (
         <GeneratePanel
-          story={generating}
+          source={{ kind: "story", id: generating.story_id }}
+          title={`@${generating.username ?? "unknown"}`}
+          sourceText={generating.caption ?? generating.overlay_text}
+          product={generating.product ?? "ALLES"}
           promoType={promoType || "STATIC-ADS"}
           awarenessLevel={awareness}
           onClose={() => setGenerating(null)}

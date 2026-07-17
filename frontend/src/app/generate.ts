@@ -33,17 +33,31 @@ async function requireUser() {
   return supabase;
 }
 
-async function storySource(storyId: string): Promise<string> {
+// A generation source: our own story/post, or a competitor ad from Inspiratie.
+export type SourceRef = { kind: "story" | "competitor"; id: string };
+
+async function sourceText(ref: SourceRef): Promise<string> {
   const supabase = await requireUser();
+  if (ref.kind === "story") {
+    const { data, error } = await supabase
+      .from("stories")
+      .select("overlay_text, caption, category")
+      .eq("story_id", ref.id)
+      .single();
+    if (error) throw new Error(error.message);
+    const text = data.caption ?? data.overlay_text;
+    if (!text) throw new Error("Deze story heeft geen tekst (OCR/caption leeg) — genereren zonder bron werkt niet goed.");
+    return `Bron (${data.category ?? "onbekend"}):\n"""${text}"""`;
+  }
   const { data, error } = await supabase
-    .from("stories")
-    .select("overlay_text, caption, category")
-    .eq("story_id", storyId)
+    .from("competitor_ads")
+    .select("page_name, headline, primary_text")
+    .eq("id", ref.id)
     .single();
   if (error) throw new Error(error.message);
-  const text = data.caption ?? data.overlay_text;
-  if (!text) throw new Error("Deze story heeft geen tekst (OCR/caption leeg) — genereren zonder bron werkt niet goed.");
-  return `Bron (${data.category ?? "onbekend"}):\n"""${text}"""`;
+  const text = [data.headline, data.primary_text].filter(Boolean).join("\n\n");
+  if (!text) throw new Error("Deze advertentie heeft geen tekst om als inspiratie te gebruiken.");
+  return `Bron: een advertentie van een ANDER merk (${data.page_name ?? "onbekend"}) — ALLEEN ter inspiratie:\n"""${text}"""\n\nBELANGRIJK: dit is concurrent-materiaal. Kopieer geen zinnen, claims of cijfers letterlijk en noem het andere merk of hun product nergens. Extraheer wat de advertentie sterk maakt (de invalshoek, de structuur, de emotionele trigger) en vertaal dat volledig naar Bakje Geluk: Mariska's stem, onze methode, onze producten. Claims over verkoopcijfers of reviews van het andere merk mag je NIET overnemen of vertalen.`;
 }
 
 function anthropic() {
@@ -71,12 +85,12 @@ const system = [
 ];
 
 export async function generateHooks(input: {
-  storyId: string;
+  source: SourceRef;
   product: string;
   promoType: string;
   awarenessLevel: AwarenessLevel;
 }): Promise<GeneratedHook[]> {
-  const source = await storySource(input.storyId);
+  const source = await sourceText(input.source);
   const client = anthropic();
 
   const response = await client.messages.create({
@@ -126,7 +140,7 @@ export async function generateHooks(input: {
 // Field names mirror the Notion 🪩 Hooks DB so the Notion write path can be
 // switched on later without a schema change.
 export async function saveGeneration(input: {
-  storyId: string;
+  source: SourceRef;
   hook: string;
   formule: string | null;
   adCopy1: string;
@@ -141,7 +155,8 @@ export async function saveGeneration(input: {
   const { data, error } = await supabase
     .from("generated_hooks")
     .insert({
-      story_id: input.storyId,
+      story_id: input.source.kind === "story" ? input.source.id : null,
+      competitor_ad_id: input.source.kind === "competitor" ? input.source.id : null,
       hook_title: input.hook,
       formule: input.formule,
       ad_copy_1: input.adCopy1,
@@ -160,13 +175,13 @@ export async function saveGeneration(input: {
 }
 
 export async function generateAdCopy(input: {
-  storyId: string;
+  source: SourceRef;
   product: string;
   promoType: string;
   awarenessLevel: AwarenessLevel;
   hook: string;
 }): Promise<GeneratedCopy[]> {
-  const source = await storySource(input.storyId);
+  const source = await sourceText(input.source);
   const client = anthropic();
 
   const response = await client.messages.create({

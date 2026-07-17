@@ -3,6 +3,9 @@
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { scrapeCompetitorAds } from "@/app/inspiratie";
+import GeneratePanel from "../ad-system/GeneratePanel";
+import { PRODUCTS, PROMO_TYPES } from "@/lib/types";
+import { AWARENESS_LEVELS, type AwarenessLevel } from "@/lib/generation/config";
 
 export type CompetitorAd = {
   id: string;
@@ -26,6 +29,10 @@ export default function InspiratieBoard({ ads }: { ads: CompetitorAd[] }) {
   const [brand, setBrand] = useState("");
   const [msg, setMsg] = useState<string | null>(null);
   const [pending, start] = useTransition();
+  const [inspiring, setInspiring] = useState<CompetitorAd | null>(null);
+  const [genProduct, setGenProduct] = useState("ALLES");
+  const [genPromo, setGenPromo] = useState("STATIC-ADS");
+  const [genAwareness, setGenAwareness] = useState<AwarenessLevel>("Solution Aware");
 
   const brands = useMemo(
     () => [...new Set(ads.map((a) => a.page_name).filter(Boolean))] as string[],
@@ -78,6 +85,33 @@ export default function InspiratieBoard({ ads }: { ads: CompetitorAd[] }) {
         {msg && <span className="text-sm text-gray-600">{msg}</span>}
       </div>
 
+      {inspiring && (
+        <div className="mb-4">
+          <div className="mb-2 flex flex-wrap items-center gap-2 rounded-lg border border-gray-200 bg-white p-2 text-sm">
+            <span className="text-xs font-medium text-gray-700">Vertaal naar Bakje Geluk:</span>
+            <select value={genProduct} onChange={(e) => setGenProduct(e.target.value)} className="rounded-lg border border-gray-300 px-2 py-1 text-sm text-gray-900">
+              {PRODUCTS.map((pr) => <option key={pr} value={pr}>{pr}</option>)}
+            </select>
+            <select value={genPromo} onChange={(e) => setGenPromo(e.target.value)} className="rounded-lg border border-gray-300 px-2 py-1 text-sm text-gray-900">
+              {PROMO_TYPES.map((pt) => <option key={pt} value={pt}>{pt}</option>)}
+            </select>
+            <select value={genAwareness} onChange={(e) => setGenAwareness(e.target.value as AwarenessLevel)} className="rounded-lg border border-gray-300 px-2 py-1 text-sm text-gray-900">
+              {AWARENESS_LEVELS.map((l) => <option key={l} value={l}>{l}</option>)}
+            </select>
+          </div>
+          <GeneratePanel
+            key={`${inspiring.id}-${genProduct}-${genPromo}-${genAwareness}`}
+            source={{ kind: "competitor", id: inspiring.id }}
+            title={`inspiratie van ${inspiring.page_name ?? "onbekend"}`}
+            sourceText={[inspiring.headline, inspiring.primary_text].filter(Boolean).join(" — ") || null}
+            product={genProduct}
+            promoType={genPromo}
+            awarenessLevel={genAwareness}
+            onClose={() => setInspiring(null)}
+          />
+        </div>
+      )}
+
       {shown.length === 0 ? (
         <p className="text-sm text-gray-500">
           Nog geen ads gescraped. Plak hierboven een Ads Library-link (bijv. die van Dennis) en klik Scrape.
@@ -114,7 +148,13 @@ export default function InspiratieBoard({ ads }: { ads: CompetitorAd[] }) {
                   </p>
                 )}
                 <div className="mt-2 flex items-center justify-between text-xs">
-                  <span className="text-gray-400">{a.cta_text ?? ""}</span>
+                  <button
+                    onClick={() => { setInspiring(a); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+                    className="rounded-lg border border-gray-300 px-2 py-0.5 text-xs font-medium text-gray-900 hover:border-gray-900"
+                    title="Gebruik deze ad als inspiratie voor eigen hooks + copy"
+                  >
+                    ✨ gebruik als inspiratie
+                  </button>
                   <a
                     href={`https://www.facebook.com/ads/library/?id=${a.ad_archive_id}`}
                     target="_blank"
