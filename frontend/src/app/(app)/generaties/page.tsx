@@ -16,6 +16,8 @@ type Row = {
   promo_type: string | null;
   button: string | null;
   link: string | null;
+  ad_code: string | null;
+  assigned_to: string | null;
   scan_flags: string[] | null;
   exported_to_notion: string | null;
   created_at: string;
@@ -82,6 +84,9 @@ export default async function GeneratiesPage() {
 
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
+                  {r.ad_code && (
+                    <span className="rounded-md bg-gray-900 px-2 py-0.5 font-mono text-xs font-medium text-white">{r.ad_code}</span>
+                  )}
                   <span className="text-sm font-semibold text-gray-900">{r.hook_title}</span>
                   {r.formule && (
                     <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-700">{r.formule}</span>
@@ -101,6 +106,7 @@ export default async function GeneratiesPage() {
                 <p className="mt-1 text-xs text-gray-400">
                   {new Date(r.created_at).toLocaleString()} · bron: {sourceLabel}
                   {r.button ? ` · knop: ${r.button}` : ""}
+                  {r.assigned_to ? ` · toegewezen: ${r.assigned_to}` : ""}
                 </p>
 
                 {/* SCAN flags for the reviewer */}

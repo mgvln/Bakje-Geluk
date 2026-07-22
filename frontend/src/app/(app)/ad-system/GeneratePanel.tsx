@@ -8,7 +8,7 @@ import {
   type GeneratedHook,
   type GeneratedCopy,
 } from "@/app/generate";
-import type { AwarenessLevel } from "@/lib/generation/config";
+import { TEAM_MEMBERS, type AwarenessLevel } from "@/lib/generation/config";
 import type { SourceRef } from "@/app/generate";
 
 // Phase 2 generation flow for one story:
@@ -37,6 +37,7 @@ export default function GeneratePanel({
   const [copies, setCopies] = useState<GeneratedCopy[] | null>(null);
   const [copy1, setCopy1] = useState("");
   const [copy2, setCopy2] = useState("");
+  const [assignedTo, setAssignedTo] = useState("");
   const [msg, setMsg] = useState<string | null>(null);
   const [pending, start] = useTransition();
 
@@ -79,7 +80,7 @@ export default function GeneratePanel({
           ...chosen.flags,
           ...(copies?.flatMap((c) => c.flags) ?? []),
         ];
-        await saveGeneration({
+        const { adCode } = await saveGeneration({
           source,
           hook: chosen.hook,
           formule: chosen.formule,
@@ -88,9 +89,10 @@ export default function GeneratePanel({
           awarenessLevel,
           product: base.product,
           promoType,
+          assignedTo: assignedTo || null,
           flags: allFlags,
         });
-        setMsg("Opgeslagen ✅");
+        setMsg(`Opgeslagen ✅ — AD code: ${adCode}`);
       } catch (e) {
         setMsg(e instanceof Error ? e.message : "Opslaan mislukt.");
       }
@@ -104,9 +106,14 @@ export default function GeneratePanel({
           <h3 className="text-sm font-semibold text-gray-900">
             ✨ Genereer ad — {title}
           </h3>
-          <p className="text-xs text-gray-500">
-            {product} · {promoType} · {awarenessLevel} · button: {chosen?.button ?? "—"}
-          </p>
+          <div className="mt-1 flex flex-wrap items-center gap-1.5">
+            <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">
+              {awarenessLevel}
+            </span>
+            <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-700">{product}</span>
+            <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-700">{promoType}</span>
+            <span className="text-xs text-gray-400">knop: {chosen?.button ?? "—"}</span>
+          </div>
         </div>
         <button onClick={onClose} className="text-sm text-gray-500 hover:text-gray-900">✕ sluiten</button>
       </div>
@@ -185,13 +192,26 @@ export default function GeneratePanel({
       )}
 
       {copies && (
-        <button
-          onClick={save}
-          disabled={pending || !copy1}
-          className="rounded-lg bg-gray-900 px-4 py-1.5 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-50"
-        >
-          {pending ? "Opslaan…" : "Opslaan"}
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <label className="text-xs font-medium text-gray-700">Toewijzen aan:</label>
+          <select
+            value={assignedTo}
+            onChange={(e) => setAssignedTo(e.target.value)}
+            className="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-900"
+          >
+            <option value="">Niemand</option>
+            {TEAM_MEMBERS.map((m) => (
+              <option key={m} value={m}>{m}</option>
+            ))}
+          </select>
+          <button
+            onClick={save}
+            disabled={pending || !copy1}
+            className="rounded-lg bg-gray-900 px-4 py-1.5 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-50"
+          >
+            {pending ? "Opslaan…" : "Opslaan"}
+          </button>
+        </div>
       )}
 
       {msg && <p className="mt-2 text-sm text-gray-600">{msg}</p>}

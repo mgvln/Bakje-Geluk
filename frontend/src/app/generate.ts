@@ -148,10 +148,26 @@ export async function saveGeneration(input: {
   awarenessLevel: AwarenessLevel;
   product: string;
   promoType: string;
+  assignedTo: string | null;
   flags: string[];
-}): Promise<string> {
+}): Promise<{ id: string; adCode: string }> {
   const supabase = await requireUser();
-  const { productUrl } = await import("@/lib/generation/config");
+  const { productUrl, monthToken, adCode } = await import("@/lib/generation/config");
+
+  // AD code = {PROMO}-B{batch}-{MONTH}{YY}, batch auto-increments per promo type
+  // per month (Dennis Loom). Find the current max batch for this promo+month.
+  const month = monthToken();
+  const { data: last } = await supabase
+    .from("generated_hooks")
+    .select("batch")
+    .eq("promo_type", input.promoType)
+    .eq("ad_month", month)
+    .order("batch", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const batch = ((last?.batch as number | null) ?? 0) + 1;
+  const code = adCode(input.promoType, batch, month);
+
   const { data, error } = await supabase
     .from("generated_hooks")
     .insert({
@@ -164,6 +180,10 @@ export async function saveGeneration(input: {
       awareness_level: input.awarenessLevel,
       product: input.product,
       promo_type: input.promoType,
+      assigned_to: input.assignedTo,
+      ad_code: code,
+      batch,
+      ad_month: month,
       button: buttonFor(input.awarenessLevel),
       link: productUrl(input.product),
       scan_flags: input.flags,
@@ -171,7 +191,7 @@ export async function saveGeneration(input: {
     .select("id")
     .single();
   if (error) throw new Error(error.message);
-  return data.id;
+  return { id: data.id, adCode: code };
 }
 
 export async function generateAdCopy(input: {

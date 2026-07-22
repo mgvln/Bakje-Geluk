@@ -35,3 +35,18 @@ export function productUrl(product: string | null): string {
 export function utmFor(adCode: string, hookNumber: number): string {
   return `utm_source=meta&utm_medium=paid_social&utm_campaign=${adCode.toLowerCase()}&utm_content=h${hookNumber}.1`;
 }
+
+// Team members who can be assigned to an ad (Dennis Loom "assign to").
+export const TEAM_MEMBERS = ["Dennis", "Rose"] as const;
+
+// Month token for the AD code, e.g. "JUL26" (uppercase 3-letter month + 2-digit year).
+// English abbreviations (Dennis's example: "July" -> JUL). Confirm MAR/MAY/OCT vs Dutch if it matters.
+const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+export function monthToken(d = new Date()): string {
+  return `${MONTHS[d.getMonth()]}${String(d.getFullYear()).slice(2)}`;
+}
+
+// AD code: {PROMO}-B{batch}-{MONTH}{YY}, e.g. INSTA-ADS-B1-JUL26 (Dennis Loom).
+export function adCode(promoType: string, batch: number, month = monthToken()): string {
+  return `${promoType}-B${batch}-${month}`;
+}
