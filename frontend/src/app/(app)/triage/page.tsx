@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { listProducts } from "@/app/actions";
 import type { Story } from "@/lib/types";
 import TriageBoard from "./TriageBoard";
 
@@ -15,6 +16,7 @@ export default async function TriagePage() {
     .limit(120);
 
   const stories = (data ?? []) as Story[];
+  const products = await listProducts();
 
   return (
     <div>
@@ -28,7 +30,7 @@ export default async function TriagePage() {
       {stories.length === 0 ? (
         <p className="text-sm text-gray-500">Nothing to triage. 🎉</p>
       ) : (
-        <TriageBoard stories={stories} />
+        <TriageBoard stories={stories} products={products} />
       )}
     </div>
   );

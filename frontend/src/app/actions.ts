@@ -17,6 +17,33 @@ async function requireUser() {
   return supabase;
 }
 
+// Product list is now table-backed (Dennis 07-24). Falls back to the static
+// PRODUCTS constant if the table is empty/unavailable so nothing breaks.
+export async function listProducts(): Promise<string[]> {
+  const { PRODUCTS } = await import("@/lib/types");
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("products")
+    .select("name")
+    .order("sort", { ascending: true })
+    .order("name", { ascending: true });
+  if (error || !data || data.length === 0) return PRODUCTS;
+  return data.map((r) => r.name as string);
+}
+
+export async function addProduct(name: string): Promise<string[]> {
+  const clean = name.trim();
+  if (!clean) throw new Error("Productnaam is leeg.");
+  const supabase = await requireUser();
+  const { error } = await supabase.from("products").insert({ name: clean });
+  // Ignore duplicate-key errors (product already exists); surface others.
+  if (error && !error.message.toLowerCase().includes("duplicate")) {
+    throw new Error(error.message);
+  }
+  revalidatePath("/triage");
+  return listProducts();
+}
+
 export async function labelStory(
   storyId: string,
   fields: { decision?: Decision | null; product?: string | null },

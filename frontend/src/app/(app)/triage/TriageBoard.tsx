@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { labelStories } from "@/app/actions";
-import { PRODUCTS, storyMedia, type Story, type Decision } from "@/lib/types";
+import { labelStories, addProduct } from "@/app/actions";
+import { storyMedia, type Story, type Decision } from "@/lib/types";
 import TriageControls from "./TriageControls";
 
 // A story row is a "post/reel" when content_type is 'post'; everything else
@@ -11,11 +11,36 @@ function isPost(s: Story) {
   return s.content_type === "post";
 }
 
-export default function TriageBoard({ stories }: { stories: Story[] }) {
+export default function TriageBoard({
+  stories,
+  products,
+}: {
+  stories: Story[];
+  products: string[];
+}) {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkProduct, setBulkProduct] = useState("");
   const [typeFilter, setTypeFilter] = useState<"all" | "story" | "post">("all");
+  const [productList, setProductList] = useState<string[]>(products);
+  const [addingProduct, setAddingProduct] = useState(false);
+  const [newProduct, setNewProduct] = useState("");
   const [pending, startTransition] = useTransition();
+
+  function saveNewProduct() {
+    const name = newProduct.trim();
+    if (!name) return;
+    startTransition(async () => {
+      try {
+        const updated = await addProduct(name);
+        setProductList(updated);
+        setBulkProduct(name);
+        setNewProduct("");
+        setAddingProduct(false);
+      } catch {
+        // keep the input open on failure
+      }
+    });
+  }
 
   const visible = stories.filter((s) =>
     typeFilter === "all" ? true : typeFilter === "post" ? isPost(s) : !isPost(s),
@@ -70,17 +95,42 @@ export default function TriageBoard({ stories }: { stories: Story[] }) {
         </select>
 
         <div className="ml-auto flex flex-wrap items-center gap-2">
-          <select
-            value={bulkProduct}
-            onChange={(e) => setBulkProduct(e.target.value)}
-            disabled={selected.size === 0 || pending}
-            className="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-900 disabled:opacity-50"
-          >
-            <option value="">Product (optional)…</option>
-            {PRODUCTS.map((p) => (
-              <option key={p} value={p}>{p}</option>
-            ))}
-          </select>
+          {addingProduct ? (
+            <span className="flex items-center gap-1">
+              <input
+                autoFocus
+                value={newProduct}
+                onChange={(e) => setNewProduct(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && saveNewProduct()}
+                placeholder="Nieuw product…"
+                className="w-40 rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-900 placeholder:text-gray-400"
+              />
+              <button onClick={saveNewProduct} disabled={pending || !newProduct.trim()}
+                className="rounded-lg bg-gray-900 px-2 py-1.5 text-sm font-medium text-white disabled:opacity-50">
+                ✓
+              </button>
+              <button onClick={() => { setAddingProduct(false); setNewProduct(""); }}
+                className="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-500">
+                ✕
+              </button>
+            </span>
+          ) : (
+            <select
+              value={bulkProduct}
+              onChange={(e) => {
+                if (e.target.value === "__add__") { setAddingProduct(true); return; }
+                setBulkProduct(e.target.value);
+              }}
+              disabled={pending}
+              className="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-900 disabled:opacity-50"
+            >
+              <option value="">Product (optional)…</option>
+              {productList.map((p) => (
+                <option key={p} value={p}>{p}</option>
+              ))}
+              <option value="__add__">+ Nieuw product toevoegen…</option>
+            </select>
+          )}
           <button onClick={() => bulkDecide("build_now")} disabled={selected.size === 0 || pending}
             className="rounded-lg bg-gray-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-50">
             Now
