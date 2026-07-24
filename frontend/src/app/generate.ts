@@ -235,7 +235,7 @@ export async function generateAdCopy(input: {
     messages: [
       {
         role: "user",
-        content: `${source}\n\nProduct: ${input.product}\nPromo Type: ${input.promoType}\nAwareness Level: ${input.awarenessLevel}\nGekozen hook: "${input.hook}"\n\nSchrijf 2 ad copy varianten (Ad Copy 1 en Ad Copy 2) bij deze hook volgens de spec: elk 250–350 tekens, 3-blokken-structuur, elk een andere invalshoek, copy-variant passend bij dit awareness level, exact 1 emoji aan het eind.`,
+        content: `${source}\n\nProduct: ${input.product}\nPromo Type: ${input.promoType}\nAwareness Level: ${input.awarenessLevel}\nGekozen hook: "${input.hook}"\n\nSchrijf 2 ad copy varianten (Ad Copy 1 en Ad Copy 2) bij deze hook volgens de spec: elk 250–350 tekens, 3-blokken-structuur, elk een andere invalshoek, copy-variant passend bij dit awareness level, exact 1 emoji aan het eind.\n\nCTA-regel: gebruik NOOIT "Ontdek hoe het wél kan" of een variant met "Ontdek…" als call-to-action — dit is een AI-tell (blok 03). De twee varianten moeten elk een ANDERE, concrete CTA hebben die past bij het awareness level (bijv. een directe uitnodiging, een vraag, of een actie zoals "Bekijk [product]", "Start vandaag", "Doe de challenge mee"). Varieer bewust; herhaal geen CTA-frase.`,
       },
     ],
   });

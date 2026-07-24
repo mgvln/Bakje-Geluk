@@ -109,6 +109,16 @@ export default async function GeneratiesPage() {
                   {r.assigned_to ? ` · toegewezen: ${r.assigned_to}` : ""}
                 </p>
 
+                <a
+                  href={`/api/static-ad/${r.id}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-2 inline-flex w-fit items-center rounded-lg border border-gray-300 px-2 py-0.5 text-xs font-medium text-gray-900 hover:border-gray-900"
+                  title="Render een static ad (1080×1080) — prototype"
+                >
+                  🖼️ Genereer static ad
+                </a>
+
                 {/* SCAN flags for the reviewer */}
                 {flags.length > 0 && (
                   <div className="mt-2 flex flex-wrap gap-1">
