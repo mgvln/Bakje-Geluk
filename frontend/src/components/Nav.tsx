@@ -1,20 +1,22 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
+// Inspiratie + Generaties hidden from nav per Dennis (07-24, "not going to use
+// it for now"). Routes still exist — just not linked.
 const TABS = [
   { href: "/triage", label: "Triage" },
   { href: "/library", label: "Library" },
   { href: "/ad-system", label: "Ad system" },
-  { href: "/inspiratie", label: "Inspiratie" },
-  { href: "/generaties", label: "Generaties" },
 ];
 
 export default function Nav() {
   const pathname = usePathname();
   const router = useRouter();
+  const [logoOk, setLogoOk] = useState(true);
 
   async function signOut() {
     const supabase = createClient();
@@ -27,7 +29,15 @@ export default function Nav() {
     <header className="border-b border-gray-200 bg-white">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
         <div className="flex items-center gap-6">
-          <span className="font-semibold text-gray-900">ads.bakjegeluk</span>
+          <div className="flex items-center gap-2">
+            {logoOk && (
+              // Small brand logo, top-left (Dennis 07-24). Drop the file at
+              // frontend/public/logo.png; hides itself gracefully if absent.
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src="/logo.png" alt="" className="h-7 w-auto" onError={() => setLogoOk(false)} />
+            )}
+            <span className="font-semibold text-gray-900">ADS Tool · Bakje Geluk</span>
+          </div>
           <nav className="flex gap-1">
             {TABS.map((t) => {
               const active = pathname === t.href;

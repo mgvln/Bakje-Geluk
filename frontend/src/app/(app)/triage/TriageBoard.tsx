@@ -5,10 +5,21 @@ import { labelStories } from "@/app/actions";
 import { PRODUCTS, storyMedia, type Story, type Decision } from "@/lib/types";
 import TriageControls from "./TriageControls";
 
+// A story row is a "post/reel" when content_type is 'post'; everything else
+// (incl. null legacy rows) is a story.
+function isPost(s: Story) {
+  return s.content_type === "post";
+}
+
 export default function TriageBoard({ stories }: { stories: Story[] }) {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkProduct, setBulkProduct] = useState("");
+  const [typeFilter, setTypeFilter] = useState<"all" | "story" | "post">("all");
   const [pending, startTransition] = useTransition();
+
+  const visible = stories.filter((s) =>
+    typeFilter === "all" ? true : typeFilter === "post" ? isPost(s) : !isPost(s),
+  );
 
   function toggle(id: string) {
     setSelected((prev) => {
@@ -18,9 +29,9 @@ export default function TriageBoard({ stories }: { stories: Story[] }) {
     });
   }
 
-  const allSelected = selected.size === stories.length && stories.length > 0;
+  const allSelected = visible.length > 0 && visible.every((s) => selected.has(s.story_id));
   function toggleAll() {
-    setSelected(allSelected ? new Set() : new Set(stories.map((s) => s.story_id)));
+    setSelected(allSelected ? new Set() : new Set(visible.map((s) => s.story_id)));
   }
 
   // Assign a decision (and optional product) to every selected story at once.
@@ -46,6 +57,17 @@ export default function TriageBoard({ stories }: { stories: Story[] }) {
           Select all
         </label>
         <span className="text-sm font-medium text-gray-900">{selected.size} selected</span>
+
+        <select
+          value={typeFilter}
+          onChange={(e) => setTypeFilter(e.target.value as "all" | "story" | "post")}
+          className="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-900"
+          title="Filter op type"
+        >
+          <option value="all">Alle types</option>
+          <option value="story">Stories</option>
+          <option value="post">Posts / Reels</option>
+        </select>
 
         <div className="ml-auto flex flex-wrap items-center gap-2">
           <select
@@ -75,9 +97,10 @@ export default function TriageBoard({ stories }: { stories: Story[] }) {
       </div>
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-        {stories.map((s) => {
+        {visible.map((s) => {
           const isSel = selected.has(s.story_id);
           const { url, isVideo } = storyMedia(s);
+          const post = isPost(s);
           return (
             <div
               key={s.story_id}
@@ -95,6 +118,14 @@ export default function TriageBoard({ stories }: { stories: Story[] }) {
                     className="h-4 w-4"
                   />
                 </label>
+                {/* story vs post/reel badge (Dennis 07-24) */}
+                <span
+                  className={`absolute right-2 top-2 z-10 rounded px-1.5 py-0.5 text-[10px] font-medium ${
+                    post ? "bg-blue-600 text-white" : "bg-black/60 text-white"
+                  }`}
+                >
+                  {post ? "post / reel" : "story"}
+                </span>
                 {url && isVideo ? (
                   <video src={url} className="h-full w-full object-cover" muted playsInline preload="metadata" controls />
                 ) : url ? (
