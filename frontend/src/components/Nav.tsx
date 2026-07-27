@@ -36,7 +36,7 @@ export default function Nav() {
               // TODO: self-host (copy into public/) so we don't depend on ibb.co.
               // eslint-disable-next-line @next/next/no-img-element
               <img
-                src="https://i.ibb.co/qYgrF9Lx/Bakje-Geluk-logo2-zwart-transparant-min-1.webp"
+                src="https://iili.io/CkvO3wg.webp"
                 alt="Bakje Geluk"
                 className="h-8 w-auto"
                 onError={() => setLogoOk(false)}
