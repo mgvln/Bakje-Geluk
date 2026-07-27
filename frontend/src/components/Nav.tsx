@@ -31,10 +31,16 @@ export default function Nav() {
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-2">
             {logoOk && (
-              // Small brand logo, top-left (Dennis 07-24). Drop the file at
-              // frontend/public/logo.png; hides itself gracefully if absent.
+              // Small brand logo, top-left (Dennis 07-24). Served from the
+              // hosted URL Dennis provided; self-hides if it ever fails to load.
+              // TODO: self-host (copy into public/) so we don't depend on ibb.co.
               // eslint-disable-next-line @next/next/no-img-element
-              <img src="/logo.png" alt="" className="h-7 w-auto" onError={() => setLogoOk(false)} />
+              <img
+                src="https://i.ibb.co/qYgrF9Lx/Bakje-Geluk-logo2-zwart-transparant-min-1.webp"
+                alt="Bakje Geluk"
+                className="h-8 w-auto"
+                onError={() => setLogoOk(false)}
+              />
             )}
             <span className="font-semibold text-gray-900">ADS Tool · Bakje Geluk</span>
           </div>
