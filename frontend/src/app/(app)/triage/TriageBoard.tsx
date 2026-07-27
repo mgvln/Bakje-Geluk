@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { labelStories, addProduct } from "@/app/actions";
-import { storyMedia, type Story, type Decision } from "@/lib/types";
+import { storyMedia, instagramUrl, type Story, type Decision } from "@/lib/types";
 import TriageControls from "./TriageControls";
 
 // A story row is a "post/reel" when content_type is 'post'; everything else
@@ -168,13 +168,20 @@ export default function TriageBoard({
                     className="h-4 w-4"
                   />
                 </label>
-                {/* story vs post/reel badge (Dennis 07-24) */}
-                <span
-                  className={`absolute right-2 top-2 z-10 rounded px-1.5 py-0.5 text-[10px] font-medium ${
-                    post ? "bg-blue-600 text-white" : "bg-black/60 text-white"
-                  }`}
-                >
-                  {post ? "post / reel" : "story"}
+                {/* story vs post/reel badge + carousel flag (Dennis 07-24) */}
+                <span className="absolute right-2 top-2 z-10 flex gap-1">
+                  <span
+                    className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${
+                      post ? "bg-blue-600 text-white" : "bg-black/60 text-white"
+                    }`}
+                  >
+                    {post ? "post / reel" : "story"}
+                  </span>
+                  {s.is_carousel && (
+                    <span className="rounded bg-purple-600 px-1.5 py-0.5 text-[10px] font-medium text-white">
+                      carrousel
+                    </span>
+                  )}
                 </span>
                 {url && isVideo ? (
                   <video src={url} className="h-full w-full object-cover" muted playsInline preload="metadata" controls />
@@ -197,7 +204,18 @@ export default function TriageBoard({
                     {s.overlay_text ?? s.caption}
                   </p>
                 )}
-                <TriageControls story={s} />
+                {instagramUrl(s.short_code) && (
+                  <a
+                    href={instagramUrl(s.short_code)!}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-xs text-blue-700 hover:underline"
+                    title={s.is_carousel ? "Open carrousel op Instagram (meerdere foto's)" : "Open op Instagram"}
+                  >
+                    {s.is_carousel ? "🖼️ bekijk carrousel ↗" : "bekijk op Instagram ↗"}
+                  </a>
+                )}
+                <TriageControls story={s} products={productList} />
               </div>
             </div>
           );

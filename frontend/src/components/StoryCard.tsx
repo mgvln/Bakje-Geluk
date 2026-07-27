@@ -1,11 +1,12 @@
-import { storyMedia, type Story } from "@/lib/types";
+import { storyMedia, instagramUrl, type Story } from "@/lib/types";
 
-function Badge({ children, tone = "gray" }: { children: React.ReactNode; tone?: "gray" | "green" | "blue" | "amber" }) {
+function Badge({ children, tone = "gray" }: { children: React.ReactNode; tone?: "gray" | "green" | "blue" | "amber" | "purple" }) {
   const tones = {
     gray: "bg-gray-100 text-gray-700",
     green: "bg-green-100 text-green-700",
     blue: "bg-blue-100 text-blue-700",
     amber: "bg-amber-100 text-amber-700",
+    purple: "bg-purple-100 text-purple-700",
   };
   return (
     <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${tones[tone]}`}>
@@ -55,6 +56,7 @@ export default function StoryCard({
 
         <div className="flex flex-wrap gap-1">
           {story.content_type === "post" && <Badge tone="blue">post</Badge>}
+          {story.is_carousel && <Badge tone="purple">carrousel</Badge>}
           {story.category && <Badge>{story.category}</Badge>}
           {story.product && <Badge tone="blue">{story.product}</Badge>}
           {story.ad_built && <Badge tone="amber">ad built</Badge>}
@@ -69,6 +71,18 @@ export default function StoryCard({
           >
             {story.overlay_text ?? story.caption}
           </p>
+        )}
+
+        {instagramUrl(story.short_code) && (
+          <a
+            href={instagramUrl(story.short_code)!}
+            target="_blank"
+            rel="noreferrer"
+            className="text-xs text-blue-700 hover:underline"
+            title={story.is_carousel ? "Open carrousel op Instagram (meerdere foto's)" : "Open op Instagram"}
+          >
+            {story.is_carousel ? "🖼️ bekijk carrousel ↗" : "bekijk op Instagram ↗"}
+          </a>
         )}
 
         {children}

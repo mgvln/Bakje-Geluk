@@ -2,9 +2,15 @@
 
 import { useTransition } from "react";
 import { labelStory } from "@/app/actions";
-import { PRODUCTS, type Story } from "@/lib/types";
+import { type Story } from "@/lib/types";
 
-export default function TriageControls({ story }: { story: Story }) {
+export default function TriageControls({
+  story,
+  products,
+}: {
+  story: Story;
+  products: string[];
+}) {
   const [pending, startTransition] = useTransition();
 
   function decide(decision: "build_now" | "build_future" | "rejected") {
@@ -26,7 +32,7 @@ export default function TriageControls({ story }: { story: Story }) {
         className="w-full rounded-lg border border-gray-300 px-2 py-1 text-xs text-gray-900"
       >
         <option value="">Product…</option>
-        {PRODUCTS.map((p) => (
+        {products.map((p) => (
           <option key={p} value={p}>
             {p}
           </option>

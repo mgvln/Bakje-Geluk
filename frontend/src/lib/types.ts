@@ -9,6 +9,8 @@ export type Story = {
   user_full_name: string | null;
   media_type: string | null;
   content_type: string | null; // 'story' | 'post'
+  short_code: string | null; // IG shortcode → permalink
+  is_carousel: boolean | null; // post with multiple images (Sidecar)
   source_image_url: string | null;
   source_video_url: string | null;
   media_storage_path: string | null;
@@ -49,6 +51,12 @@ export function storyMedia(s: {
   const isVideo =
     s.media_type === "video" || (s.media_storage_path?.endsWith(".mp4") ?? false);
   return { url, isVideo };
+}
+
+// Instagram permalink for a post/reel/story from its shortcode, so the team
+// can open the original and check carousel images (Dennis 07-24).
+export function instagramUrl(shortCode: string | null): string | null {
+  return shortCode ? `https://www.instagram.com/p/${shortCode}/` : null;
 }
 
 export const DECISION_LABELS: Record<Decision, string> = {
