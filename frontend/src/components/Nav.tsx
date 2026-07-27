@@ -31,12 +31,12 @@ export default function Nav() {
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-2">
             {logoOk && (
-              // Small brand logo, top-left (Dennis 07-24). Served from the
-              // hosted URL Dennis provided; self-hides if it ever fails to load.
-              // TODO: self-host (copy into public/) so we don't depend on ibb.co.
+              // Small brand logo, top-left (Dennis 07-24). Self-hosted at
+              // public/logo.webp (free image hosts block hotlinking, so we
+              // ship the file). Self-hides until the file is committed.
               // eslint-disable-next-line @next/next/no-img-element
               <img
-                src="https://iili.io/CkvO3wg.webp"
+                src="/logo.webp"
                 alt="Bakje Geluk"
                 className="h-8 w-auto"
                 onError={() => setLogoOk(false)}
