@@ -26,7 +26,7 @@ export default function AdSystem({ stories }: { stories: Story[] }) {
     setMsg(null);
     startTransition(async () => {
       try {
-        await exportToNotion([...selected], promoType);
+        await exportToNotion([...selected], promoType, awareness);
         setMsg(`Exported ${selected.size} stor${selected.size === 1 ? "y" : "ies"} to Notion.`);
         setSelected(new Set());
       } catch (e) {

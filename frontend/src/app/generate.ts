@@ -154,19 +154,16 @@ export async function saveGeneration(input: {
   const supabase = await requireUser();
   const { productUrl, monthToken, adCode } = await import("@/lib/generation/config");
 
-  // AD code = {PROMO}-B{batch}-{MONTH}{YY}, batch auto-increments per promo type
-  // per month (Dennis Loom). Find the current max batch for this promo+month.
+  // AD code = [{PROMO}-B{batch}-{MONTH}{YY}]. Batch comes from the shared atomic
+  // counter (next_ad_batch) so the generate flow and the Notion export never
+  // collide on numbers.
   const month = monthToken();
-  const { data: last } = await supabase
-    .from("generated_hooks")
-    .select("batch")
-    .eq("promo_type", input.promoType)
-    .eq("ad_month", month)
-    .order("batch", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  const batch = ((last?.batch as number | null) ?? 0) + 1;
-  const code = adCode(input.promoType, batch, month);
+  const { data: batch, error: batchErr } = await supabase.rpc("next_ad_batch", {
+    p_promo: input.promoType,
+    p_month: month,
+  });
+  if (batchErr) throw new Error(batchErr.message);
+  const code = adCode(input.promoType, batch as number, month);
 
   const { data, error } = await supabase
     .from("generated_hooks")

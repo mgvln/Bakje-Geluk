@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { Client as Notion } from "@notionhq/client";
 import { createClient } from "@/lib/supabase/server";
 import { storyImage, type Decision } from "@/lib/types";
+import type { AwarenessLevel } from "@/lib/generation/config";
 
 // Returns the logged-in user's Supabase client (RLS applies as `authenticated`).
 // Writes rely on the "authenticated can modify stories" policy — no service-role key,
@@ -84,13 +85,20 @@ export async function setAdBuilt(storyId: string, adBuilt: boolean) {
   revalidatePath("/library");
 }
 
-// Phase 1: insert selected stories into Notion (product + promo type + image + Supabase link).
-export async function exportToNotion(storyIds: string[], promoType: string) {
+// Insert selected stories into the Notion ADS Concepts DB as concepts.
+// AD Code uses the proper bracketed auto-numbered format ([PROMO-B{n}-{MON}{YY}])
+// and sets the Awareness Level — matching Dennis's Concepts DB (fixed 07-28).
+export async function exportToNotion(
+  storyIds: string[],
+  promoType: string,
+  awarenessLevel: AwarenessLevel = "Solution Aware",
+) {
   const supabase = await requireUser();
   const dataSourceId = process.env.NOTION_DATA_SOURCE_ID;
   if (!process.env.NOTION_TOKEN || !dataSourceId) {
     throw new Error("Notion is not configured yet (missing token/data source id).");
   }
+  const { adCode, monthToken, awarenessNotion } = await import("@/lib/generation/config");
   const { data: stories, error } = await supabase
     .from("stories")
     .select("story_id, product, username, media_storage_path, source_image_url, caption, overlay_text")
@@ -98,12 +106,19 @@ export async function exportToNotion(storyIds: string[], promoType: string) {
   if (error) throw new Error(error.message);
 
   const notion = new Notion({ auth: process.env.NOTION_TOKEN });
+  const month = monthToken();
 
-  // Maps to the "ADS Concepts Database" (data source 61413826-…). Phase 1 = product +
-  // promo type + Status "In Production" + image and Supabase link in the page body.
+  // Maps to the "ADS Concepts Database" (data source 61413826-…). Each story
+  // becomes a concept with its own auto-numbered AD Code.
   for (const s of stories ?? []) {
     const image = storyImage(s);
-    const adCode = `${s.product ?? "Concept"} · @${s.username ?? "unknown"}`;
+    // Next batch number for this promo+month from the shared atomic counter.
+    const { data: batch, error: batchErr } = await supabase.rpc("next_ad_batch", {
+      p_promo: promoType,
+      p_month: month,
+    });
+    if (batchErr) throw new Error(batchErr.message);
+    const adCodeStr = adCode(promoType, batch as number, month);
 
     const children: object[] = [];
     if (image) {
@@ -143,9 +158,10 @@ export async function exportToNotion(storyIds: string[], promoType: string) {
       // SDK v5 (2025-09 API) creates pages under a data source, not the database.
       parent: { type: "data_source_id", data_source_id: dataSourceId },
       properties: {
-        "AD Code": { title: [{ text: { content: adCode } }] },
+        "AD Code": { title: [{ text: { content: adCodeStr } }] },
         ...(s.product ? { Product: { select: { name: s.product } } } : {}),
         "Promo Type": { select: { name: promoType } },
+        "Awareness Level": { select: { name: awarenessNotion(awarenessLevel) } },
         Status: { select: { name: "In Production" } },
       },
       children: children as never,

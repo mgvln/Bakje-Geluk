@@ -52,3 +52,16 @@ export function monthToken(d = new Date()): string {
 export function adCode(promoType: string, batch: number, month = monthToken()): string {
   return `[${promoType}-B${batch}-${month}]`;
 }
+
+// Notion "Awareness Level" select uses numbered labels ("3. Solution Aware")
+// — matches the options in Dennis's Concepts DB.
+const AWARENESS_NUMBER: Record<AwarenessLevel, number> = {
+  Unaware: 1,
+  "Problem Aware": 2,
+  "Solution Aware": 3,
+  "Product Aware": 4,
+  "Most Aware": 5,
+};
+export function awarenessNotion(level: AwarenessLevel): string {
+  return `${AWARENESS_NUMBER[level]}. ${level}`;
+}
