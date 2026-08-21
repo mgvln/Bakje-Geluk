@@ -2,13 +2,13 @@
 
 import { useState, useTransition } from "react";
 import { exportToNotion } from "@/app/actions";
-import { PROMO_TYPES, DEFAULT_PROMO_TYPE, storyMedia, type Story } from "@/lib/types";
+import { DEFAULT_PROMO_TYPE, storyMedia, type Story } from "@/lib/types";
 import { AWARENESS_LEVELS, type AwarenessLevel } from "@/lib/generation/config";
 import GeneratePanel from "./GeneratePanel";
 
 export default function AdSystem({ stories }: { stories: Story[] }) {
   const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [promoType, setPromoType] = useState(DEFAULT_PROMO_TYPE);
+  const [promoType] = useState(DEFAULT_PROMO_TYPE);
   const [awareness, setAwareness] = useState<AwarenessLevel>("Solution Aware");
   const [generating, setGenerating] = useState<Story | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
@@ -39,16 +39,10 @@ export default function AdSystem({ stories }: { stories: Story[] }) {
     <div>
       <div className="sticky top-0 z-10 mb-4 flex flex-wrap items-center gap-3 rounded-lg border border-gray-200 bg-white p-3">
         <span className="text-sm font-medium text-gray-900">{selected.size} selected</span>
-        <select
-          value={promoType}
-          onChange={(e) => setPromoType(e.target.value)}
-          className="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-900"
-        >
-          <option value="">Promo type…</option>
-          {PROMO_TYPES.map((p) => (
-            <option key={p} value={p}>{p}</option>
-          ))}
-        </select>
+        {/* Promo type fixed to META-ADS for now (Dennis 07-28) — dropdown removed */}
+        <span className="rounded-lg bg-gray-100 px-2 py-1.5 text-sm font-medium text-gray-700">
+          {promoType}
+        </span>
         <select
           value={awareness}
           onChange={(e) => setAwareness(e.target.value as AwarenessLevel)}
