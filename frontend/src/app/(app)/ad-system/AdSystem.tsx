@@ -2,13 +2,13 @@
 
 import { useState, useTransition } from "react";
 import { exportToNotion } from "@/app/actions";
-import { PROMO_TYPES, storyMedia, type Story } from "@/lib/types";
+import { PROMO_TYPES, DEFAULT_PROMO_TYPE, storyMedia, type Story } from "@/lib/types";
 import { AWARENESS_LEVELS, type AwarenessLevel } from "@/lib/generation/config";
 import GeneratePanel from "./GeneratePanel";
 
 export default function AdSystem({ stories }: { stories: Story[] }) {
   const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [promoType, setPromoType] = useState("");
+  const [promoType, setPromoType] = useState(DEFAULT_PROMO_TYPE);
   const [awareness, setAwareness] = useState<AwarenessLevel>("Solution Aware");
   const [generating, setGenerating] = useState<Story | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
@@ -75,7 +75,7 @@ export default function AdSystem({ stories }: { stories: Story[] }) {
           title={`@${generating.username ?? "unknown"}`}
           sourceText={generating.caption ?? generating.overlay_text}
           product={generating.product ?? "ALLES"}
-          promoType={promoType || "STATIC-ADS"}
+          promoType={promoType || "META-ADS"}
           awarenessLevel={awareness}
           onClose={() => setGenerating(null)}
         />

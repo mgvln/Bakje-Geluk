@@ -31,7 +31,7 @@ export default function InspiratieBoard({ ads }: { ads: CompetitorAd[] }) {
   const [pending, start] = useTransition();
   const [inspiring, setInspiring] = useState<CompetitorAd | null>(null);
   const [genProduct, setGenProduct] = useState("ALLES");
-  const [genPromo, setGenPromo] = useState("STATIC-ADS");
+  const [genPromo, setGenPromo] = useState("META-ADS");
   const [genAwareness, setGenAwareness] = useState<AwarenessLevel>("Solution Aware");
 
   const brands = useMemo(

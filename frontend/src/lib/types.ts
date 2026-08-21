@@ -80,17 +80,8 @@ export const PRODUCTS: string[] = [
   "Tosti Ebook",
 ];
 
-// Promo Type select options — must match the Notion "Promo Type" select exactly.
-export const PROMO_TYPES: string[] = [
-  "INSTA-ADS",
-  "STATIC-ADS",
-  "PRO-ADS",
-  "RDB-ADS",
-  "VDB-ADS",
-  "AL-ADS",
-  "NVV-ADS",
-  "COM-ADS",
-  "TESTA-ADS",
-  "POD-ADS",
-  "MARISKA-ADS",
-];
+// Promo Type select — must match the Notion "Promo Type" select exactly.
+// Dennis simplified this to a single "META-ADS" type (07-28); the old per-type
+// list (INSTA-ADS, STATIC-ADS, …) was dropped because it got messy.
+export const PROMO_TYPES: string[] = ["META-ADS"];
+export const DEFAULT_PROMO_TYPE = "META-ADS";
