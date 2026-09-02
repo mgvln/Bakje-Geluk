@@ -158,9 +158,11 @@ export async function exportToNotion(
       // SDK v5 (2025-09 API) creates pages under a data source, not the database.
       parent: { type: "data_source_id", data_source_id: dataSourceId },
       properties: {
+        // Promo type now lives only inside the AD Code ([META-ADS-B{n}-{MON}{YY}]).
+        // Dennis removed the standalone "Promo Type" Notion property (07-28), so
+        // we no longer write it — doing so was throwing on insert.
         "AD Code": { title: [{ text: { content: adCodeStr } }] },
         ...(s.product ? { Product: { select: { name: s.product } } } : {}),
-        "Promo Type": { select: { name: promoType } },
         "Awareness Level": { select: { name: awarenessNotion(awarenessLevel) } },
         Status: { select: { name: "In Production" } },
       },
