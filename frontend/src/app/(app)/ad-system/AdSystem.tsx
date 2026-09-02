@@ -3,13 +3,14 @@
 import { useState, useTransition } from "react";
 import { exportToNotion } from "@/app/actions";
 import { DEFAULT_PROMO_TYPE, storyMedia, type Story } from "@/lib/types";
-import { AWARENESS_LEVELS, type AwarenessLevel } from "@/lib/generation/config";
+import { AWARENESS_LEVELS, TEAM_MEMBERS, type AwarenessLevel } from "@/lib/generation/config";
 import GeneratePanel from "./GeneratePanel";
 
 export default function AdSystem({ stories }: { stories: Story[] }) {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [promoType] = useState(DEFAULT_PROMO_TYPE);
   const [awareness, setAwareness] = useState<AwarenessLevel>("Solution Aware");
+  const [assignedTo, setAssignedTo] = useState("");
   const [generating, setGenerating] = useState<Story | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -26,7 +27,7 @@ export default function AdSystem({ stories }: { stories: Story[] }) {
     setMsg(null);
     startTransition(async () => {
       try {
-        await exportToNotion([...selected], promoType, awareness);
+        await exportToNotion([...selected], promoType, awareness, assignedTo || null);
         setMsg(`Exported ${selected.size} stor${selected.size === 1 ? "y" : "ies"} to Notion.`);
         setSelected(new Set());
       } catch (e) {
@@ -51,6 +52,17 @@ export default function AdSystem({ stories }: { stories: Story[] }) {
         >
           {AWARENESS_LEVELS.map((l) => (
             <option key={l} value={l}>{l}</option>
+          ))}
+        </select>
+        <select
+          value={assignedTo}
+          onChange={(e) => setAssignedTo(e.target.value)}
+          className="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-900"
+          title="Toewijzen aan (Notion Assigned To)"
+        >
+          <option value="">Toewijzen aan…</option>
+          {TEAM_MEMBERS.map((m) => (
+            <option key={m} value={m}>{m}</option>
           ))}
         </select>
         <button

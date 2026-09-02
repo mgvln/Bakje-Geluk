@@ -92,6 +92,7 @@ export async function exportToNotion(
   storyIds: string[],
   promoType: string,
   awarenessLevel: AwarenessLevel = "Solution Aware",
+  assignedTo: string | null = null,
 ) {
   const supabase = await requireUser();
   const dataSourceId = process.env.NOTION_DATA_SOURCE_ID;
@@ -164,6 +165,7 @@ export async function exportToNotion(
         "AD Code": { title: [{ text: { content: adCodeStr } }] },
         ...(s.product ? { Product: { select: { name: s.product } } } : {}),
         "Awareness Level": { select: { name: awarenessNotion(awarenessLevel) } },
+        ...(assignedTo ? { "Assigned To": { select: { name: assignedTo } } } : {}),
         Status: { select: { name: "In Production" } },
       },
       children: children as never,
