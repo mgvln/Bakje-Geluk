@@ -34,11 +34,19 @@ export default function InspiratieBoard({ ads }: { ads: CompetitorAd[] }) {
   const [genPromo, setGenPromo] = useState("META-ADS");
   const [genAwareness, setGenAwareness] = useState<AwarenessLevel>("Solution Aware");
 
-  const brands = useMemo(
-    () => [...new Set(ads.map((a) => a.page_name).filter(Boolean))] as string[],
+  // Only show ads whose media is self-hosted in our own bucket. Facebook CDN
+  // URLs expire within days, so hotlinked ones render broken — the scraper now
+  // copies every creative into Supabase Storage, and we display only those.
+  // This guarantees no broken images (dead/expired ads are simply hidden).
+  const withMedia = useMemo(
+    () => ads.filter((a) => a.media_url?.includes("/storage/v1/object/")),
     [ads],
   );
-  const shown = brand ? ads.filter((a) => a.page_name === brand) : ads;
+  const brands = useMemo(
+    () => [...new Set(withMedia.map((a) => a.page_name).filter(Boolean))] as string[],
+    [withMedia],
+  );
+  const shown = brand ? withMedia.filter((a) => a.page_name === brand) : withMedia;
 
   function scrape() {
     setMsg("Scrapen… dit kan 1–2 minuten duren.");
