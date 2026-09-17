@@ -16,7 +16,7 @@ export default async function LibraryPage({
   const sp = await searchParams;
   const supabase = await createClient();
 
-  let q = supabase.from("stories").select("*").order("posted_at", { ascending: false }).limit(120);
+  let q = supabase.from("stories").select("*").order("posted_at", { ascending: false }).limit(500);
 
   if (sp.view === "raw") q = q.is("decision", null);
   if (sp.view === "filtered") q = q.not("decision", "is", null);
@@ -27,13 +27,35 @@ export default async function LibraryPage({
   if (sp.category) q = q.eq("category", sp.category);
   if (sp.exported === "yes") q = q.not("exported_to_notion", "is", null);
   if (sp.exported === "no") q = q.is("exported_to_notion", null);
+  if (sp.from) q = q.gte("posted_at", sp.from);
+  if (sp.to) q = q.lte("posted_at", `${sp.to}T23:59:59`);
 
   const { data, error } = await q;
   const stories = (data ?? []) as Story[];
 
+  // Actual date span of what's on screen, so you know what you're looking at.
+  const dates = stories
+    .map((s) => s.posted_at)
+    .filter((d): d is string => !!d)
+    .sort();
+  const fmt = (d: string) =>
+    new Date(d).toLocaleDateString("nl-NL", { day: "numeric", month: "short", year: "numeric" });
+  const rangeLabel =
+    dates.length > 0
+      ? dates[0].slice(0, 10) === dates[dates.length - 1].slice(0, 10)
+        ? fmt(dates[0])
+        : `${fmt(dates[0])} – ${fmt(dates[dates.length - 1])}`
+      : null;
+
   return (
     <div>
-      <h1 className="mb-4 text-lg font-semibold text-gray-900">Library</h1>
+      <div className="mb-4 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+        <h1 className="text-lg font-semibold text-gray-900">Library</h1>
+        <span className="text-sm text-gray-500">
+          {stories.length} item{stories.length === 1 ? "" : "s"}
+          {rangeLabel ? ` · ${rangeLabel}` : ""}
+        </span>
+      </div>
       <LibraryFilters />
 
       {error && <p className="text-sm text-red-600">{error.message}</p>}

@@ -51,6 +51,41 @@ export default function LibraryFilters() {
         <option value="yes">Exported</option>
         <option value="no">Not exported</option>
       </select>
+
+      <label className="flex items-center gap-1 text-sm text-gray-600">
+        <span className="text-gray-500">Van</span>
+        <input
+          type="date"
+          value={sp.get("from") ?? ""}
+          max={sp.get("to") || undefined}
+          onChange={(e) => set("from", e.target.value)}
+          className={selectCls}
+        />
+      </label>
+      <label className="flex items-center gap-1 text-sm text-gray-600">
+        <span className="text-gray-500">t/m</span>
+        <input
+          type="date"
+          value={sp.get("to") ?? ""}
+          min={sp.get("from") || undefined}
+          onChange={(e) => set("to", e.target.value)}
+          className={selectCls}
+        />
+      </label>
+
+      {(sp.get("from") || sp.get("to")) && (
+        <button
+          onClick={() => {
+            const params = new URLSearchParams(sp.toString());
+            params.delete("from");
+            params.delete("to");
+            router.push(`${pathname}?${params.toString()}`);
+          }}
+          className="rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-600 hover:border-gray-900 hover:text-gray-900"
+        >
+          Datum wissen
+        </button>
+      )}
     </div>
   );
 }
