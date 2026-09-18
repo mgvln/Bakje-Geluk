@@ -16,7 +16,13 @@ export default async function LibraryPage({
   const sp = await searchParams;
   const supabase = await createClient();
 
-  let q = supabase.from("stories").select("*").order("posted_at", { ascending: false }).limit(500);
+  // Select only the columns the UI needs. Notably excludes `raw` (the full
+  // Instagram JSON blob), which made the payload ~12x larger and the page slow.
+  const COLS =
+    "story_id,username,user_full_name,media_type,content_type,short_code,is_carousel," +
+    "source_image_url,media_storage_path,media_storage_url,overlay_text,caption,category," +
+    "posted_at,scraped_at,decision,product,ad_built,exported_to_notion";
+  let q = supabase.from("stories").select(COLS).order("posted_at", { ascending: false }).limit(300);
 
   if (sp.view === "raw") q = q.is("decision", null);
   if (sp.view === "filtered") q = q.not("decision", "is", null);
@@ -31,7 +37,7 @@ export default async function LibraryPage({
   if (sp.to) q = q.lte("posted_at", `${sp.to}T23:59:59`);
 
   const { data, error } = await q;
-  const stories = (data ?? []) as Story[];
+  const stories = (data ?? []) as unknown as Story[];
 
   // Actual date span of what's on screen, so you know what you're looking at.
   const dates = stories

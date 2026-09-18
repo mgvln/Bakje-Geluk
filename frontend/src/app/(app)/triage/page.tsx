@@ -8,14 +8,19 @@ export const dynamic = "force-dynamic";
 export default async function TriagePage() {
   const supabase = await createClient();
   // Untriaged = decision is null. Newest first.
+  // Only the columns the board needs — excludes the large `raw` JSON blob.
+  const COLS =
+    "story_id,username,user_full_name,media_type,content_type,short_code,is_carousel," +
+    "source_image_url,media_storage_path,media_storage_url,overlay_text,caption,category," +
+    "posted_at,scraped_at,decision,product,ad_built,exported_to_notion";
   const { data, error } = await supabase
     .from("stories")
-    .select("*")
+    .select(COLS)
     .is("decision", null)
     .order("posted_at", { ascending: false })
     .limit(120);
 
-  const stories = (data ?? []) as Story[];
+  const stories = (data ?? []) as unknown as Story[];
   const products = await listProducts();
 
   return (

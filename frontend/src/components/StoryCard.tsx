@@ -32,7 +32,9 @@ export default function StoryCard({
             className="h-full w-full object-cover"
             muted
             playsInline
-            preload="metadata"
+            // preload="none": don't fetch metadata for every video on page load
+            // (the Library can show hundreds at once) — keeps the grid fast.
+            preload="none"
             controls
           />
         ) : url ? (
