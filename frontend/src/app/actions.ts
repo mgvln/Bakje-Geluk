@@ -166,7 +166,9 @@ export async function exportToNotion(
         ...(s.product ? { Product: { select: { name: s.product } } } : {}),
         "Awareness Level": { select: { name: awarenessNotion(awarenessLevel) } },
         ...(assignedTo ? { "Assigned To": { select: { name: assignedTo } } } : {}),
-        Status: { select: { name: "In Production" } },
+        // New concepts land in the "Context Genereren" tab (Dennis 09-28),
+        // not straight into production.
+        Status: { select: { name: "Context Genereren" } },
       },
       children: children as never,
     } as never);
